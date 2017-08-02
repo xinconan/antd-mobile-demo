@@ -11,13 +11,21 @@ const svgDirs = [
 ];
 
 module.exports = {
+    entry:{
+        index: './source/react/home/home'
+    },
+    output: {
+        path: path.join(__dirname, 'public/build'),
+        filename: '[name].js',
+        // chunkFilename: '[name].chunk.js',
+        chunkFilename: '[name].js?v=[chunkhash:8]'
+    },
 
     externals: {
         'jquery': '$',
         'fastclick': 'FastClick',
         'react': 'React',
-        'react-dom': 'ReactDOM',
-        'react-router': 'ReactRouter'
+        'react-dom': 'ReactDOM'
     },
 
     resolve: {

@@ -1,14 +1,27 @@
 const path = require('path');
 const webpack = require('webpack');
-
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const autoprefixer = require('autoprefixer');
+const pxtorem = require('postcss-pxtorem');
 
 //svg
 const svgDirs = [
   require.resolve('antd-mobile').replace(/warn\.js$/, ''), // antd-mobile 内置svg
   //path.resolve(__dirname, 'src/my-project-svg-foler'),  // 业务代码本地私有 svg 存放目录
 ];
+
+// 参考：https://github.com/ant-design/antd-mobile-samples/blob/master/web-webpack2/webpack.config.js
+// postcss
+const postcssOpts = {
+  ident: 'postcss', // https://webpack.js.org/guides/migrating/#complex-options
+  plugins: () => [
+    autoprefixer({
+      browsers: ['last 2 versions', 'Firefox ESR', '> 1%', 'ie >= 8', 'iOS >= 8', 'Android >= 4'],
+    }),
+    pxtorem({ rootValue: 100, propWhiteList: [] })
+  ],
+};
 
 module.exports = {
     entry:{
@@ -56,28 +69,29 @@ module.exports = {
                     }
                 ]
             },
+            // {
+            //     test: /\.html$/,
+            //     use: ['html-loader']
+            // },
+            // 注意：如下不使用 ExtractTextPlugin 的写法，不能单独 build 出 css 文件
             {
-                test: /\.html$/,
-                use: ['html-loader']
-            },
-            {
-                test: /\.css$/,
+                test: /\.css$/i,
                 use: ExtractTextPlugin.extract({
                         fallback: 'style-loader',
                         use: [
                             'css-loader',
-                            'postcss-loader'
+                            { loader: 'postcss-loader', options: postcssOpts }
                         ]
                     }
                 )
             },
             {
-                test: /\.scss$/,
+                test: /\.scss$/i,
                 loader: ExtractTextPlugin.extract({
                         fallback: 'style-loader',
                         use: [
                             'css-loader',
-                            'postcss-loader',
+                            { loader: 'postcss-loader', options: postcssOpts },
                             'sass-loader'
                         ]
                     }
@@ -99,5 +113,33 @@ module.exports = {
         ],
     },
 
+    plugins: [
+        // new webpack.optimize.CommonsChunkPlugin('common'),
+        new ExtractTextPlugin('[name].css'),
+        // new webpack.LoaderOptionsPlugin({
+        //     options: {
+        //         postcss: [
+        //             require('autoprefixer')({browsers: ['last 5 versions']}),
+        //             require('postcss-pxtorem')({rootValue: 100, propWhiteList: []})
+        //         ]
+        //     }
+        // }),
+        new webpack.optimize.MinChunkSizePlugin({
+            compress: {
+                warnings: false
+            }
+        }),
+        
+        // new HtmlWebpackPlugin({
+        //     filename:  path.resolve(__dirname, 'views/react/react_index.hbs'),
+        //     template:  path.resolve(__dirname, 'views/react/react_template.hbs'),
+        //     inject: 'body',
+        //     hash: true,
+        //     minify: {
+        //         removeComments: true,
+        //         collapseWhitespace: false
+        //     }
+        // })
+    ]
     
 };
